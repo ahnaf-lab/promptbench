@@ -1,0 +1,32 @@
+{
+  "name": "greeting-rewrite",
+  "variants": [
+    {
+      "id": "baseline",
+      "prompt": "Say hello to the user.",
+      "output": "Hello! How can I help you today?",
+      "promptTokens": 6,
+      "completionTokens": 9,
+      "latencyMs": 420,
+      "costUsd": 0.00013
+    },
+    {
+      "id": "terse",
+      "prompt": "Greet the user in one short sentence.",
+      "output": "Hi there!",
+      "promptTokens": 8,
+      "completionTokens": 3,
+      "latencyMs": 210,
+      "costUsd": 0.00006
+    },
+    {
+      "id": "formal",
+      "prompt": "Write a formal greeting to a new user of this application.",
+      "output": "Good day. Welcome to the application; please let us know if you require assistance.",
+      "promptTokens": 11,
+      "completionTokens": 16,
+      "latencyMs": 610,
+      "costUsd": 0.00021
+    }
+  ]
+}
