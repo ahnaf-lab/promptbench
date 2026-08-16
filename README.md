@@ -6,10 +6,12 @@ keyword/length heuristics — with zero live API calls. See which rewrite
 actually wins as a live, navigable leaderboard instead of eyeballing
 transcripts.
 
-This first milestone lays the foundation: the JSON **fixture format** that
-records a prompt variant's canned output and metadata, and a **loader /
-replay engine** that turns a fixture file into ordered, ready-to-score
-results. The scoring and TUI layers land in later milestones.
+The foundation is the JSON **fixture format** that records a prompt variant's
+canned output and metadata, and a **loader / replay engine** that turns a
+fixture file into ordered, ready-to-score results. On top of that sits the
+**scoring engine**: pluggable, deterministic scorers (keyword match, length
+ratio, cost estimate) that turn each replayed result into a 0–1 score and a
+weighted total. The leaderboard TUI and navigation land in later milestones.
 
 ## Install
 
@@ -64,8 +66,50 @@ pacing them out by each variant's recorded `latencyMs` (`simulateDelay:
 true`) so a future TUI can feel like a live run without ever making a real
 network call.
 
+### Scoring
+
+A **scorer** is a plain object — `{ name, weight?, score(result, allResults)
+}` — so custom scorers plug in the same way the built-ins do. Every built-in
+scorer is a pure function of data already on disk: no timers, no I/O, no
+network, no randomness.
+
+```js
+import { replay } from './src/replay.js';
+import {
+  keywordScorer,
+  lengthRatioScorer,
+  costScorer,
+  rankVariants,
+} from './src/scoring.js';
+
+const results = replay(fixture);
+
+const scorers = [
+  keywordScorer(['help', 'welcome']),      // fraction of keywords present
+  lengthRatioScorer({ targetLength: 40 }), // how close output length is to a target
+  costScorer(),                            // cheaper variants score higher
+];
+
+for (const entry of rankVariants(results, scorers)) {
+  console.log(entry.id, entry.total.toFixed(2), entry.scores);
+}
+```
+
+- `keywordScorer(keywords, { caseSensitive })` — fraction of `keywords` found
+  in the output.
+- `lengthRatioScorer({ targetLength, unit })` — 1 for an exact length match
+  (in `'chars'` or `'words'`), falling off symmetrically the further the
+  output is from the target.
+- `costScorer({ maxCostUsd })` — cheaper is better; normalises against
+  `maxCostUsd` if given, otherwise against the priciest variant in the same
+  batch.
+- `scoreVariants(results, scorers)` — one scorecard per variant, in fixture
+  order, with a weight-averaged `total`.
+- `rankVariants(results, scorers)` — the same scorecards, sorted best-first
+  for a leaderboard.
+
 ## Status
 
-Built autonomously with Claude Code, gated on passing tests. Milestone 1 of
-5: fixture format and replay engine only — scoring, the leaderboard TUI, and
-navigation are not implemented yet.
+Built autonomously with Claude Code, gated on passing tests. Milestone 2 of
+5: fixture format, replay engine, and the pluggable scoring engine — the
+leaderboard TUI and navigation are not implemented yet.
