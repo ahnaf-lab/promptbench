@@ -8,4 +8,21 @@ export {
   rankVariants,
   ScoringError,
 } from './scoring.js';
-export { renderBar, renderLeaderboard, stripAnsi, RenderError } from './render.js';
+export {
+  renderBar,
+  renderLeaderboard,
+  renderDetailPane,
+  renderInteractive,
+  stripAnsi,
+  RenderError,
+} from './render.js';
+export {
+  createNavState,
+  moveSelection,
+  selectFirst,
+  selectLast,
+  selectedId,
+  reduceKey,
+  NavError,
+} from './nav.js';
+export { runInteractive, keyName } from './interactive.js';

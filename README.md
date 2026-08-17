@@ -12,10 +12,13 @@ fixture file into ordered, ready-to-score results. On top of that sits the
 **scoring engine**: pluggable, deterministic scorers (keyword match, length
 ratio, cost estimate) that turn each replayed result into a 0–1 score and a
 weighted total. On top of that sits the **leaderboard renderer**: a raw-ANSI
-table, best-first, with horizontal bars for total score, cost and latency —
-and a small CLI that ties fixture, scorers and renderer together into
-something runnable. Interactive keyboard navigation lands in a later
-milestone; this one prints a full leaderboard in one shot.
+table, best-first, with horizontal bars for total score, cost and latency.
+On top of that sits **interactive navigation**: arrow keys (or vim-style
+`j`/`k`) move the selection up and down the table, and a bordered side pane
+shows the full recorded prompt/output transcript for whichever variant is
+currently selected — a small CLI ties fixture, scorers, renderer and
+navigation together into something runnable, in either a one-shot or a live
+mode.
 
 ## Install
 
@@ -148,13 +151,53 @@ node bin/promptbench.js fixtures/greeting-rewrite.json \
 ```
 
 Flags: `--keywords a,b,c` (keyword scorer), `--target-length N` (length
-scorer), `--bar-width N` (default 12) and `--no-color`. This CLI prints one
-full leaderboard and exits; interactive, navigable browsing of a leaderboard
-is a later milestone.
+scorer), `--bar-width N` (default 12), `--pane-width N` (detail pane width in
+interactive mode, default 44), `--no-color` and `--interactive`/`-i`. Without
+`--interactive` the CLI prints one full leaderboard and exits.
+
+### Interactive navigation
+
+`--interactive` (or `-i`) turns the same leaderboard into a live session: the
+table and a bordered detail pane are drawn side by side, with `▶` marking the
+selected row and the pane showing that variant's full recorded prompt and
+output — the transcript, not just the summary line.
+
+```bash
+node bin/promptbench.js fixtures/greeting-rewrite.json --interactive
+```
+
+- `↑`/`k` and `↓`/`j` move the selection up and down the table
+- `g`/Home jumps to the top row, `G`/End jumps to the bottom row
+- `q`, `Esc` or `Ctrl+C` exits
+
+This is built from two pieces, kept deliberately separate for testability:
+`src/nav.js` is a pure reducer over "which row is selected" — clamped
+movement, jump-to-top/bottom, and a `reduceKey(state, key)` transition
+function — with no I/O or terminal handling at all, so it's unit tested with
+plain function calls. `src/interactive.js` is the thin runtime glue: it
+decodes real key presses into the names `nav.js` understands and re-renders
+`renderInteractive()` on every change. Because it only ever needs something
+`readline.emitKeypressEvents` can attach to (not literally a TTY), its tests
+drive it with an in-memory stream instead of a real terminal.
+
+```js
+import { createNavState, reduceKey, selectedId } from './src/nav.js';
+
+let state = createNavState(ranked); // ranked from rankVariants()
+state = reduceKey(state, 'down');
+console.log(selectedId(state)); // the id of the now-selected row
+```
+
+`renderDetailPane(result, options)` and `renderInteractive(results, ranked,
+selectedIndex, options)` (in `src/render.js`) are pure formatting, same as
+`renderLeaderboard`: given the same inputs they always produce the same
+string, which is what the snapshot tests in `test/render.test.js` assert
+against.
 
 ## Status
 
-Built autonomously with Claude Code, gated on passing tests. Milestone 3 of
-5: fixture format, replay engine, pluggable scoring engine, and the raw-ANSI
-leaderboard renderer with a one-shot CLI — interactive TUI navigation is not
-implemented yet.
+Built autonomously with Claude Code, gated on passing tests. Milestone 4 of
+5: fixture format, replay engine, pluggable scoring engine, the raw-ANSI
+leaderboard renderer, and interactive arrow-key navigation with a
+transcript side pane. A CLI ties it all together in one-shot or
+`--interactive` mode.

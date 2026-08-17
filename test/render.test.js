@@ -4,7 +4,14 @@ import assert from 'node:assert/strict';
 import { loadFixture } from '../src/fixture.js';
 import { replay } from '../src/replay.js';
 import { keywordScorer, lengthRatioScorer, costScorer, rankVariants } from '../src/scoring.js';
-import { renderBar, renderLeaderboard, stripAnsi, RenderError } from '../src/render.js';
+import {
+  renderBar,
+  renderLeaderboard,
+  renderDetailPane,
+  renderInteractive,
+  stripAnsi,
+  RenderError,
+} from '../src/render.js';
 
 const FIXTURE_PATH = new URL('../fixtures/greeting-rewrite.json', import.meta.url);
 
@@ -103,6 +110,87 @@ test('renderLeaderboard rejects a ranked entry with no matching result', async (
     () => renderLeaderboard(results, [{ id: 'missing', scores: {}, total: 0.5 }]),
     RenderError
   );
+});
+
+test('renderLeaderboard adds a marker column only when selectedId is passed', async () => {
+  const { results, ranked } = await getRanked();
+  const plain = renderLeaderboard(results, ranked, { color: false });
+  const marked = renderLeaderboard(results, ranked, { color: false, selectedId: ranked[1].id });
+  assert.notEqual(marked, plain);
+  const markedLine = marked.split('\n').find((l) => l.includes(ranked[1].id));
+  assert.ok(markedLine.includes('\u25b6'));
+  const otherLine = marked.split('\n').find((l) => l.includes(ranked[0].id));
+  assert.ok(!otherLine.includes('\u25b6'));
+});
+
+// --- renderDetailPane --------------------------------------------------
+
+test('renderDetailPane draws a bordered box containing id, prompt and output', async () => {
+  const { results } = await getRanked();
+  const result = results.find((r) => r.id === 'formal');
+  const pane = renderDetailPane(result, { color: false, width: 40 });
+  const lines = pane.split('\n');
+
+  assert.ok(lines[0].startsWith('\u250c') && lines[0].endsWith('\u2510'));
+  assert.ok(lines[lines.length - 1].startsWith('\u2514') && lines[lines.length - 1].endsWith('\u2518'));
+  assert.ok(pane.includes('formal'));
+  assert.ok(pane.includes('Prompt:'));
+  assert.ok(pane.includes('Output:'));
+  assert.ok(pane.includes('Good day.'));
+  assert.ok(pane.includes(`${result.totalTokens} tok`));
+  // every content line is exactly `width` columns wide
+  for (const line of lines) {
+    assert.equal(line.length, 40);
+  }
+});
+
+test('renderDetailPane wraps long transcript text to fit the box width', async () => {
+  const long = {
+    id: 'long-one',
+    prompt: 'x',
+    output: 'word '.repeat(40).trim(),
+    totalTokens: 12,
+    latencyMs: 100,
+    costUsd: 0.0001,
+  };
+  const pane = renderDetailPane(long, { color: false, width: 24 });
+  const lines = pane.split('\n');
+  const outputLines = lines.filter((l) => l.includes('word'));
+  assert.ok(outputLines.length > 1);
+  for (const line of lines) {
+    assert.equal(line.length, 24);
+  }
+});
+
+test('renderDetailPane rejects a missing result or too-small width', async () => {
+  const { results } = await getRanked();
+  assert.throws(() => renderDetailPane(null), RenderError);
+  assert.throws(() => renderDetailPane(results[0], { width: 5 }), RenderError);
+});
+
+// --- renderInteractive ---------------------------------------------------
+
+test('renderInteractive places the selected variant transcript beside the table', async () => {
+  const { results, ranked } = await getRanked();
+  const frame = renderInteractive(results, ranked, 1, { color: false });
+  const selected = results.find((r) => r.id === ranked[1].id);
+
+  assert.ok(frame.includes(ranked[1].id));
+  assert.ok(frame.includes(selected.output.split(' ')[0]));
+  assert.ok(frame.includes('quit'));
+});
+
+test('renderInteractive switches which transcript is shown as selectedIndex changes', async () => {
+  const { results, ranked } = await getRanked();
+  const first = renderInteractive(results, ranked, 0, { color: false });
+  const second = renderInteractive(results, ranked, 1, { color: false });
+  assert.notEqual(first, second);
+});
+
+test('renderInteractive rejects an out-of-range selectedIndex', async () => {
+  const { results, ranked } = await getRanked();
+  assert.throws(() => renderInteractive(results, ranked, 99), RenderError);
+  assert.throws(() => renderInteractive(results, ranked, -1), RenderError);
 });
 
 // --- stripAnsi ---------------------------------------------------------
