@@ -4,6 +4,9 @@
   "description": "Terminal TUI that benchmarks prompt variants against recorded model outputs with zero live API calls",
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "promptbench": "bin/promptbench.js"
+  },
   "scripts": {
     "test": "node --test test/"
   },

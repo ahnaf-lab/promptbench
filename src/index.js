@@ -8,3 +8,4 @@ export {
   rankVariants,
   ScoringError,
 } from './scoring.js';
+export { renderBar, renderLeaderboard, stripAnsi, RenderError } from './render.js';
