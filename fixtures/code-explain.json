@@ -1,0 +1,32 @@
+{
+  "name": "code-explain",
+  "variants": [
+    {
+      "id": "one-liner",
+      "prompt": "In one sentence, what does this function do: `const uniq = (xs) => [...new Set(xs)];`",
+      "output": "It removes duplicate values from an array, keeping the first occurrence of each.",
+      "promptTokens": 28,
+      "completionTokens": 15,
+      "latencyMs": 260,
+      "costUsd": 0.00010
+    },
+    {
+      "id": "eli5",
+      "prompt": "Explain what this function does like I'm new to programming: `const uniq = (xs) => [...new Set(xs)];`",
+      "output": "Think of `xs` as a list that might have repeats, like [1, 2, 2, 3]. A `Set` is a special container that automatically throws away duplicates when you put things in it, so it becomes {1, 2, 3}. The `...` then spreads that back out into a plain array: [1, 2, 3]. So this function takes a list and returns a new list with the duplicates removed.",
+      "promptTokens": 30,
+      "completionTokens": 88,
+      "latencyMs": 720,
+      "costUsd": 0.00042
+    },
+    {
+      "id": "technical",
+      "prompt": "Give a technical explanation, including time complexity, of this function: `const uniq = (xs) => [...new Set(xs)];`",
+      "output": "The function constructs a `Set` from the input iterable `xs`, which de-duplicates elements using SameValueZero equality, then spreads the Set's iterator back into a new Array via the spread operator. Set insertion and iteration are both average-case O(1) per element, so building the Set is O(n), and spreading it back into an array is another O(n), giving O(n) overall time and O(n) auxiliary space for the Set and output array.",
+      "promptTokens": 33,
+      "completionTokens": 78,
+      "latencyMs": 650,
+      "costUsd": 0.00038
+    }
+  ]
+}

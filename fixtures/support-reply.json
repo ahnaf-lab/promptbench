@@ -1,0 +1,32 @@
+{
+  "name": "support-reply",
+  "variants": [
+    {
+      "id": "direct",
+      "prompt": "Reply to a customer whose order shipped late. Apologize briefly and offer a refund of shipping costs.",
+      "output": "Sorry your order arrived late. We've refunded your shipping cost — it should post within 3-5 business days.",
+      "promptTokens": 22,
+      "completionTokens": 24,
+      "latencyMs": 380,
+      "costUsd": 0.00019
+    },
+    {
+      "id": "empathetic",
+      "prompt": "Reply to a customer whose order shipped late. Acknowledge their frustration, apologize sincerely, and offer a refund of shipping costs.",
+      "output": "I'm really sorry your order didn't arrive on time — that's frustrating, especially when you're counting on it. I've gone ahead and refunded your shipping cost; you should see it back on your card within 3-5 business days. Thanks for your patience with us.",
+      "promptTokens": 27,
+      "completionTokens": 52,
+      "latencyMs": 540,
+      "costUsd": 0.00034
+    },
+    {
+      "id": "legalese",
+      "prompt": "Reply to a customer whose order shipped late. Apologize, cite our shipping SLA policy, and explain the refund process for shipping costs step by step.",
+      "output": "We apologize for the delay in fulfilling your order. Per our Shipping Service Level Agreement, orders exceeding the quoted delivery window are eligible for a shipping cost refund. To process your refund: (1) our system has flagged your order as SLA-breaching, (2) a refund request has been automatically generated, (3) funds will be returned to your original payment method within 3-5 business days, (4) you will receive a confirmation email once the refund posts. Please retain this correspondence for your records.",
+      "promptTokens": 31,
+      "completionTokens": 96,
+      "latencyMs": 910,
+      "costUsd": 0.00061
+    }
+  ]
+}

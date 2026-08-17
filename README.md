@@ -31,9 +31,57 @@ to.
 git clone <this-repo>
 cd promptbench
 npm install
+npm link   # optional: puts `promptbench` on your PATH
 ```
 
+Without `npm link` you can still run it directly with
+`node bin/promptbench.js <command>`; every example below assumes `promptbench`
+is on your `PATH`.
+
 ## Usage
+
+### Walkthrough
+
+List the sample fixtures that ship with this package:
+
+```bash
+promptbench list
+```
+
+```
+code-explain.json      code-explain      3 variants
+greeting-rewrite.json  greeting-rewrite  3 variants
+support-reply.json     support-reply     3 variants
+```
+
+Then benchmark one of them:
+
+```bash
+promptbench run fixtures/greeting-rewrite.json --keywords hello,help --no-color
+```
+
+```
+#  ID        TOTAL              COST                   LATENCY
+---------------------------------------------------------------------------
+1  baseline  ██████████░░ 0.79  ███████░░░░░ $0.00013  ████████░░░░ 420ms
+2  terse     ███████░░░░░ 0.57  ███░░░░░░░░░ $0.00006  ████░░░░░░░░ 210ms
+3  formal    ████░░░░░░░░ 0.33  ████████████ $0.00021  ████████████ 610ms
+```
+
+Add `--interactive` (or `-i`) to browse the same leaderboard with the arrow
+keys and read each variant's full recorded transcript in the side pane
+instead of scrolling past it. Three fixtures are bundled under `fixtures/`,
+each modelling a different kind of prompt-engineering decision:
+
+- `greeting-rewrite.json` — a short user-facing greeting: terse vs. baseline
+  vs. formal.
+- `support-reply.json` — a customer support reply: direct vs. empathetic vs.
+  policy-heavy legalese, trading warmth and thoroughness against cost.
+- `code-explain.json` — explaining a code snippet: a one-line summary vs. an
+  ELI5 walkthrough vs. a technical explanation with complexity analysis.
+
+Point `promptbench run` at your own fixture file (any JSON file matching the
+schema below) to benchmark real prompt rewrites the same way.
 
 Fixtures live in `fixtures/*.json` and follow this shape:
 
@@ -143,17 +191,21 @@ tests in `test/render.test.js` assert against a fixed fixture. Pass
 `{ color: false }` for a plain table, or use the exported `stripAnsi()` to
 strip colour codes from an already-rendered one.
 
-A minimal CLI ties fixture loading, scoring and rendering together:
+A minimal CLI ties fixture loading, scoring and rendering together, with two
+subcommands: `run` scores and prints a leaderboard for one fixture, `list`
+shows the fixtures bundled with the package.
 
 ```bash
-node bin/promptbench.js fixtures/greeting-rewrite.json \
+promptbench run fixtures/greeting-rewrite.json \
   --keywords hello,help --target-length 40
 ```
 
-Flags: `--keywords a,b,c` (keyword scorer), `--target-length N` (length
-scorer), `--bar-width N` (default 12), `--pane-width N` (detail pane width in
-interactive mode, default 44), `--no-color` and `--interactive`/`-i`. Without
-`--interactive` the CLI prints one full leaderboard and exits.
+Flags for `run`: `--keywords a,b,c` (keyword scorer), `--target-length N`
+(length scorer), `--bar-width N` (default 12), `--pane-width N` (detail pane
+width in interactive mode, default 44), `--no-color` and
+`--interactive`/`-i`. Without `--interactive` the CLI prints one full
+leaderboard and exits. Run `promptbench` with no arguments for the full usage
+text.
 
 ### Interactive navigation
 
@@ -163,7 +215,7 @@ selected row and the pane showing that variant's full recorded prompt and
 output — the transcript, not just the summary line.
 
 ```bash
-node bin/promptbench.js fixtures/greeting-rewrite.json --interactive
+promptbench run fixtures/greeting-rewrite.json --interactive
 ```
 
 - `↑`/`k` and `↓`/`j` move the selection up and down the table
@@ -196,8 +248,8 @@ against.
 
 ## Status
 
-Built autonomously with Claude Code, gated on passing tests. Milestone 4 of
+Built autonomously with Claude Code, gated on passing tests. Milestone 5 of
 5: fixture format, replay engine, pluggable scoring engine, the raw-ANSI
-leaderboard renderer, and interactive arrow-key navigation with a
-transcript side pane. A CLI ties it all together in one-shot or
-`--interactive` mode.
+leaderboard renderer, interactive arrow-key navigation with a transcript
+side pane, and the `promptbench run`/`promptbench list` CLI with three
+bundled example fixture sets.

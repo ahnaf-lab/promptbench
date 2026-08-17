@@ -26,3 +26,4 @@ export {
   NavError,
 } from './nav.js';
 export { runInteractive, keyName } from './interactive.js';
+export { parseArgs, runCli, listBundledFixtures, BUNDLED_FIXTURES_DIR, USAGE } from './cli.js';
