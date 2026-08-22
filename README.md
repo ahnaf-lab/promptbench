@@ -248,7 +248,7 @@ against.
 
 ## Status
 
-Built autonomously with Claude Code, gated on passing tests. Milestone 5 of
+Built autonomously, gated on passing tests. Milestone 5 of
 5: fixture format, replay engine, pluggable scoring engine, the raw-ANSI
 leaderboard renderer, interactive arrow-key navigation with a transcript
 side pane, and the `promptbench run`/`promptbench list` CLI with three
